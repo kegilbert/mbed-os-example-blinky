@@ -7,26 +7,21 @@
 #include "stats_report.h"
 
 DigitalOut led1(LED1);
+EventQueue *queue = mbed_event_queue();
 
 #define SLEEP_TIME                  500 // (msec)
-#define PRINT_AFTER_N_LOOPS         20
+#define REPORT_TIME                 10000
 
 // main() runs in its own thread in the OS
 int main()
 {
-    SystemReport sys_state( SLEEP_TIME * PRINT_AFTER_N_LOOPS /* Loop delay time in ms */);
+    SystemReport sys_state( REPORT_TIME ); // Report loop delay time in ms
+    queue->call_every(REPORT_TIME, &sys_state, &SystemReport::report_state);
 
     int count = 0;
     while (true) {
         // Blink LED and wait 0.5 seconds
         led1 = !led1;
         wait_ms(SLEEP_TIME);
-
-        if ((0 == count) || (PRINT_AFTER_N_LOOPS == count)) {
-            // Following the main thread wait, report on the current system status
-            sys_state.report_state();
-            count = 0;
-        }
-        ++count;
     }
 }
